@@ -9,6 +9,7 @@ import base64
 import hashlib
 from datetime import datetime
 import re
+import codecs
 
 
 class Serializacao(object):
@@ -188,6 +189,31 @@ class SerializacaoXML(Serializacao):
             return etree.tostring(raiz, encoding="unicode", pretty_print=True)
         else:
             return raiz
+
+    def _serializar_reponsavel_tecnico(self,chave_acesso,raiz, retorna_string=True):
+        infRespTec = etree.SubElement(raiz, 'infRespTec')
+
+        #Calculo para geração do hashCSRT
+        #csrt =  "41180678393592000146558900000006041028190697"
+        #idCsrt = "01"
+        #csrt_complementar = csrt + chave_acesso
+        #csrt_hash = hashlib.sha1(csrt_complementar.encode()).digest()
+        #csrt_hash = base64.b16encode(csrt_hash).decode()
+        #csrt_hash =csrt_hash.lower        #raiz = etree.Element(tag_raiz)()
+        #csrt_hash = codecs.encode(codecs.decode(csrt_hash, 'hex'), 'base64').decode()
+
+        etree.SubElement(infRespTec,'CNPJ').text = '72763913000170'
+        etree.SubElement(infRespTec,'xContato').text = 'Nome do Contato'
+        etree.SubElement(infRespTec,'email').text = "email@empresaficticia.com.br"
+        etree.SubElement(infRespTec,'fone').text = '41999999999'
+        # Não serão contabilizados no momento pelo SEFAZ
+        #etree.SubElement(infRespTec,'idCSRT').text = 01
+        #etree.SubElement(infRespTec,'hashCSRT').text = csrt_hash
+
+        if retorna_string:
+            return etree.tostring(infRespTec, encoding="unicode", pretty_print=True)
+        else:
+            return infRespTec
 
     def _serializar_entrega_retirada(self, entrega_retirada, tag_raiz='entrega', retorna_string=True):
         raiz = etree.Element(tag_raiz)
@@ -479,7 +505,7 @@ class SerializacaoXML(Serializacao):
                 for refNFe in nota_fiscal.notas_fiscais_referenciadas:
                     etree.SubElement(nfref, 'refNFe').text = refNFe.chave_acesso
 
-        ### CONTINGENCIA ###
+       ### CONTINGENCIA ###
         if self._contingencia != None:
             etree.SubElement(ide, 'dhCont').text = nota_fiscal.data_emissao.strftime('%Y-%m-%dT%H:%M:%S') + tz # Data e Hora da entrada em contingência AAAA-MM-DDThh:mm:ssTZD
             etree.SubElement(ide, 'xJust').text = nota_fiscal.self._contingencia  # Justificativa da entrada em contingência (min 20, max 256 caracteres)
@@ -636,6 +662,16 @@ class SerializacaoXML(Serializacao):
             if nota_fiscal.informacoes_complementares_interesse_contribuinte:
                 etree.SubElement(info_ad, 'infCpl').text = nota_fiscal.informacoes_complementares_interesse_contribuinte
 
+        try:
+            #Responsavel Tecnico
+            #Extração da chave da nota para geração do hashCSRT
+            p = re.compile(r'\d+')
+            chave_acesso = p.findall(nota_fiscal.identificador_unico)
+            chave_acesso = str(chave_acesso[0])
+            raiz.append(self._serializar_reponsavel_tecnico(chave_acesso,raiz,retorna_string=False))
+        except:
+            pass
+
         if retorna_string:
             return etree.tostring(raiz, encoding="unicode", pretty_print=True)
         else:
@@ -670,7 +706,6 @@ class SerializacaoXML(Serializacao):
             return etree.tostring(raiz, encoding="unicode", pretty_print=True)
         else:
             return raiz
-
 
 class SerializacaoQrcode(object):
     """ Classe que gera e serializa o qrcode de NFC-e no xml """
