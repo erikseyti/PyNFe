@@ -358,7 +358,8 @@ class ComunicacaoSefaz(Comunicacao):
                 raise Exception('Modelo não encontrado! Defina modelo="nfe" ou "nfce"')
         # Estados que utilizam outros ambientes
         else:
-            lista_svrs = ['AC', 'RJ', 'RN', 'PB', 'SC', 'SE', 'PI', 'DF', 'ES', 'PA']
+            lista_svrs = ['AC', 'RJ', 'RN', 'PB', 'SC', 'SE', 'PI', 'DF', 'ES']
+            lista_svan = ['MA','PA']
             if self.uf.upper() in lista_svrs:
                 if self._ambiente == 1:
                     ambiente = 'HTTPS'
@@ -372,9 +373,7 @@ class ComunicacaoSefaz(Comunicacao):
                     self.url = NFCE['SVRS'][ambiente] + NFCE['SVRS'][consulta]
                 else:
                     raise Exception('Modelo não encontrado! Defina modelo="nfe" ou "nfce"')
-            # unico UF que utiliza SVAN ainda para NF-e
-            # SVRS para NFC-e
-            elif self.uf.upper() == 'MA':
+            elif self.uf.upper() in lista_svan:
                 if self._ambiente == 1:
                     ambiente = 'HTTPS'
                 else:
@@ -384,11 +383,9 @@ class ComunicacaoSefaz(Comunicacao):
                     self.url = NFE['SVAN'][ambiente] + NFE['SVAN'][consulta]
                 elif modelo == 'nfce':
                     # nfce Ex: https://homologacao.nfce.fazenda.pr.gov.br/nfce/NFeStatusServico3
-                    self.url = NFCE['SVRS'][ambiente] + NFCE['SVRS'][consulta]
+                    self.url = NFCE['SVAN'][ambiente] + NFCE['SVAN'][consulta]
                 else:
                     raise Exception('Modelo não encontrado! Defina modelo="nfe" ou "nfce"')
-            else:
-                raise Exception(f"Url não encontrada para {modelo} e {consulta} {self.uf.upper()}")
         return self.url
 
     def _construir_xml_soap(self, metodo, dados, cabecalho=False):
