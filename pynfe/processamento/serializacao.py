@@ -90,10 +90,7 @@ class SerializacaoXML(Serializacao):
         raiz = etree.Element(tag_raiz)
 
         # Dados do emitente
-        if len(so_numeros(emitente.cnpj)) == 11:
-            etree.SubElement(raiz, 'CPF').text = so_numeros(emitente.cnpj)
-        else:
-            etree.SubElement(raiz, 'CNPJ').text = so_numeros(emitente.cnpj)
+        etree.SubElement(raiz, 'CNPJ').text = so_numeros(emitente.cnpj)
         etree.SubElement(raiz, 'xNome').text = emitente.razao_social
         etree.SubElement(raiz, 'xFant').text = emitente.nome_fantasia
         # Endereço
